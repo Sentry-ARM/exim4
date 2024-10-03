@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 
 RUN set -eux; \
 	apt-get update; \
@@ -20,7 +20,15 @@ RUN set -eux; \
 VOLUME ["/var/spool/exim4", "/var/log/exim4"]
 
 COPY set-exim4-update-conf docker-entrypoint.sh /usr/local/bin/
-ENTRYPOINT ["docker-entrypoint.sh"]
+RUN set -eux; \
+	set-exim4-update-conf \
+		dc_eximconfig_configtype 'internet' \
+		dc_hide_mailname 'true' \
+		dc_local_interfaces '0.0.0.0 ; ::0' \
+		dc_other_hostnames '' \
+		dc_relay_nets '0.0.0.0/0' \
+	;
 
 EXPOSE 25
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["exim", "-bd", "-v"]
